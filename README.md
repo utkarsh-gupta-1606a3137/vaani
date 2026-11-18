@@ -9,7 +9,7 @@ Local Hinglish narration for Apple silicon macOS. Give Vaani final spoken text a
 
 ## Install and run
 
-The intended GitHub location below is pending publication. Once published, clone and run:
+Clone the repository and run:
 
 ```sh
 git clone https://github.com/utkarsh-gupta-1606a3137/vaani.git
