@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+VAANI_PROJECT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+export VAANI_ROOT="$VAANI_PROJECT"
+export PYTHONPATH="$VAANI_PROJECT/src"
+export PYTHONNOUSERSITE=1
+export PYTHONPYCACHEPREFIX="$VAANI_PROJECT/cache/pycache"
+if [ "${1:-}" = setup ]; then
+  "$VAANI_PROJECT/scripts/bootstrap.sh" "$@"
+  exec "$VAANI_PROJECT/.runtime/python/bin/python3.12" -m vaani "$@"
+fi
+if [ -x "$VAANI_PROJECT/.runtime/envs/control/bin/python" ]; then
+  exec "$VAANI_PROJECT/.runtime/envs/control/bin/python" -m vaani "$@"
+fi
+if [ -x "$VAANI_PROJECT/.runtime/python/bin/python3.12" ]; then
+  exec "$VAANI_PROJECT/.runtime/python/bin/python3.12" -m vaani "$@"
+fi
+if command -v python3 >/dev/null 2>&1; then exec python3 -m vaani "$@"; fi
+echo 'Run ./bin/vaani setup --allow-download to install project-local Python and dependencies.' >&2
+exit 4

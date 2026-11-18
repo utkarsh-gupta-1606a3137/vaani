@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+.runtime/
+models/
+cache/
+.state/
+runs/
+tmp/
+voices/*
+!voices/references/
+voices/references/*
+*.egg-info/
+.venv/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.wav
+*.mp3
+*.safetensors
+*.gguf
+*.pt
+*.bin
+
+# Required synthetic conditioning reference; not an optional generated output.
+!voices/references/amit-conditioning.wav

@@ -1,0 +1,132 @@
+{
+  "schema_version": "vaani-downloads/1",
+  "revisions": {
+    "chatterbox-multilingual-v3": [
+      "mlx-community/chatterbox-multilingual-v3",
+      "03565773edd72e949572557597af8063bb49a18a"
+    ],
+    "S3TokenizerV2": [
+      "mlx-community/S3TokenizerV2",
+      "e0c9886f0e1c35ae85b1f27277416fb19fc72bec"
+    ],
+    "indic-speak-mlx-8bit": [
+      "iniquitous/indic-speak-mlx-8bit",
+      "f5ede72229c6dc7238670066910aa0b51f69635e"
+    ],
+    "snac_24khz": [
+      "hubertsiuzdak/snac_24khz",
+      "d73ad176a12188fcf4f360ba3bf2c2fbbe8f58ec"
+    ]
+  },
+  "files": {
+    "models/S3TokenizerV2/config.json": {
+      "sha256": "8591fcc0eaae8c2bbfc69cf9d439933ecdf2d58cb9be63d00ce88736c4f2aa9d",
+      "bytes": 126,
+      "url": "https://huggingface.co/mlx-community/S3TokenizerV2/resolve/e0c9886f0e1c35ae85b1f27277416fb19fc72bec/config.json"
+    },
+    "models/S3TokenizerV2/model.safetensors": {
+      "sha256": "928726bc1f206a613d36b8f49e297eae9c5593a21bf9b92ddfe2c23f85eb92cc",
+      "bytes": 494868984,
+      "url": "https://huggingface.co/mlx-community/S3TokenizerV2/resolve/e0c9886f0e1c35ae85b1f27277416fb19fc72bec/model.safetensors"
+    },
+    "models/chatterbox-multilingual-v3/Cangjie5_TC.json": {
+      "sha256": "7073fd9de919443ae88e0bd2449917a65fe54898a4413ed1edcc4b67f28bce8c",
+      "bytes": 1920163,
+      "url": "https://huggingface.co/mlx-community/chatterbox-multilingual-v3/resolve/03565773edd72e949572557597af8063bb49a18a/Cangjie5_TC.json"
+    },
+    "models/chatterbox-multilingual-v3/config.json": {
+      "sha256": "b2097a15078624f41fcdaad9fc82f7b91ab0d39771aebc1af1775b0feaafe309",
+      "bytes": 666,
+      "url": "https://huggingface.co/mlx-community/chatterbox-multilingual-v3/resolve/03565773edd72e949572557597af8063bb49a18a/config.json"
+    },
+    "models/chatterbox-multilingual-v3/model.safetensors": {
+      "sha256": "e702f2c441e040bd360e59a86c85d462539759d665e41cfd1938adadd74187a3",
+      "bytes": 2711113780,
+      "url": "https://huggingface.co/mlx-community/chatterbox-multilingual-v3/resolve/03565773edd72e949572557597af8063bb49a18a/model.safetensors"
+    },
+    "models/chatterbox-multilingual-v3/tokenizer.json": {
+      "sha256": "69632f47220a788a52ce2661d096453c5655e9bf25289d89a8d832c46ee07dbf",
+      "bytes": 69989,
+      "url": "https://huggingface.co/mlx-community/chatterbox-multilingual-v3/resolve/03565773edd72e949572557597af8063bb49a18a/tokenizer.json"
+    },
+    "models/indic-speak-mlx-8bit/config.json": {
+      "sha256": "939d45b4f0e92069c291046083a31b86f49673e6f987d2e280ed4d1b87910449",
+      "bytes": 1234,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/config.json"
+    },
+    "models/indic-speak-mlx-8bit/inference.py": {
+      "sha256": "9be5d6391bc527a7ac626cb819494f98b486ac6b616e247e9ca74c4cae525ef5",
+      "bytes": 7939,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/inference.py"
+    },
+    "models/indic-speak-mlx-8bit/model.safetensors": {
+      "sha256": "95f2426fb2f8521f61c3085159f84d64fb1c59d724c23e26f8add3f028960cb3",
+      "bytes": 3507474349,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/model.safetensors"
+    },
+    "models/indic-speak-mlx-8bit/tokenizer.json": {
+      "sha256": "645579dd8b7040a2e53808a10e6b5f6961d1b625a6bee768710fdf507465f53f",
+      "bytes": 22681215,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/tokenizer.json"
+    },
+    "models/indic-speak-mlx-8bit/tokenizer_config.json": {
+      "sha256": "6fd058b81ceb4e4538305bb4a010454a0b6e52b5aa545099bb41308247c2ec7d",
+      "bytes": 402,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/tokenizer_config.json"
+    },
+    "models/indic-speak-mlx-8bit/tts_mlx.py": {
+      "sha256": "8eafcd82d86779b56c836d4a1649e70785358f96cfe3c0cd5ff579207899fa13",
+      "bytes": 9396,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/tts_mlx.py"
+    },
+    "models/indic-speak-mlx-8bit/vocos/best.pt": {
+      "sha256": "867426748123693b8ca5b26d9b407af158ac0bbae3f140901bc004b7ebc5738d",
+      "bytes": 466966065,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/vocos/best.pt"
+    },
+    "models/indic-speak-mlx-8bit/vocos/config.yaml": {
+      "sha256": "d7bf584bccb653560eb06ec7b60e5202a11c0808f558dc83cbbaf1c714eac735",
+      "bytes": 1144,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/vocos/config.yaml"
+    },
+    "models/indic-speak-mlx-8bit/vocos/model.py": {
+      "sha256": "1526bbb54d51b6f0509283acf7879ef4e59ad6155ff7ae06c62dd1d3079eda7f",
+      "bytes": 6687,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/vocos/model.py"
+    },
+    "models/snac_24khz/config.json": {
+      "sha256": "e119b9366d4f5e73c6ca5f31137c4ff361578bbb132953a5203afe037c4012be",
+      "bytes": 300,
+      "url": "https://huggingface.co/hubertsiuzdak/snac_24khz/resolve/d73ad176a12188fcf4f360ba3bf2c2fbbe8f58ec/config.json"
+    },
+    "models/snac_24khz/pytorch_model.bin": {
+      "sha256": "4b8164cc6606bfa627f1a784734c1e539891518f1191ed9194fe1e3b9b4bff40",
+      "bytes": 79488254,
+      "url": "https://huggingface.co/hubertsiuzdak/snac_24khz/resolve/d73ad176a12188fcf4f360ba3bf2c2fbbe8f58ec/pytorch_model.bin"
+    },
+    "voices/references/amit-conditioning.wav": {
+      "sha256": "17daa45445a5d1cb6272f67c4d88653c1a8545da5b07bf3bc2c18944f66aa0f7",
+      "bytes": 482490
+    },
+    "models/indic-speak-mlx-8bit/vocos/load.py": {
+      "sha256": "c53eac936e1d1231accf32f36bc697e185f79fe29af463749f1362d786b22df9",
+      "bytes": 878,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/vocos/load.py"
+    },
+    "models/indic-speak-mlx-8bit/vocos/__init__.py": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/vocos/__init__.py"
+    },
+    "models/indic-speak-mlx-8bit/generation_config.json": {
+      "sha256": "690a45cdedd4a8a0a318a2b046c646c3e089c1934c2b3bd9eba8aab7523cf493",
+      "bytes": 205,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/generation_config.json"
+    },
+    "models/indic-speak-mlx-8bit/model.safetensors.index.json": {
+      "sha256": "3f55e5cd4a79a931f11e4f497185c593521932f095d49a8d5e50eab5d6e762f5",
+      "bytes": 45760,
+      "url": "https://huggingface.co/iniquitous/indic-speak-mlx-8bit/resolve/f5ede72229c6dc7238670066910aa0b51f69635e/model.safetensors.index.json"
+    }
+  }
+}

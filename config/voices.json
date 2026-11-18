@@ -1,0 +1,62 @@
+{
+  "schema_version": "voices/1",
+  "default_voice": "amit",
+  "voices": {
+    "amit": {
+      "display_name": "Amit-reference",
+      "gender": "male",
+      "backend": "chatterbox",
+      "profile_version": "1",
+      "default_seed": 42,
+      "settings": {
+        "lang_code": "hi",
+        "exaggeration": 0.4,
+        "cfg_weight": 0.3,
+        "temperature": 0.8,
+        "repetition_penalty": 1.2,
+        "max_new_tokens": 2000
+      },
+      "assets": [
+        "models/chatterbox-multilingual-v3/model.safetensors",
+        "models/chatterbox-multilingual-v3/config.json",
+        "models/chatterbox-multilingual-v3/tokenizer.json",
+        "models/chatterbox-multilingual-v3/Cangjie5_TC.json",
+        "models/S3TokenizerV2/model.safetensors",
+        "models/S3TokenizerV2/config.json"
+      ]
+    },
+    "saba": {
+      "display_name": "Saba",
+      "gender": "female",
+      "backend": "indic",
+      "profile_version": "1",
+      "default_seed": 1234,
+      "settings": {
+        "speaker": "Saba",
+        "style": "",
+        "temperature": 0.6,
+        "top_p": 0.9,
+        "top_k": 50,
+        "repetition_penalty": 1.2,
+        "max_tokens": 4096
+      },
+      "assets": [
+        "models/indic-speak-mlx-8bit/model.safetensors",
+        "models/indic-speak-mlx-8bit/config.json",
+        "models/indic-speak-mlx-8bit/tokenizer.json",
+        "models/indic-speak-mlx-8bit/tokenizer_config.json",
+        "models/indic-speak-mlx-8bit/tts_mlx.py",
+        "models/indic-speak-mlx-8bit/inference.py",
+        "models/indic-speak-mlx-8bit/vocos/best.pt",
+        "models/indic-speak-mlx-8bit/vocos/model.py",
+        "models/indic-speak-mlx-8bit/vocos/config.yaml",
+        "models/snac_24khz/pytorch_model.bin",
+        "models/snac_24khz/config.json",
+        "models/indic-speak-mlx-8bit/vocos/load.py",
+        "models/indic-speak-mlx-8bit/vocos/__init__.py",
+        "models/indic-speak-mlx-8bit/generation_config.json",
+        "models/indic-speak-mlx-8bit/model.safetensors.index.json"
+      ]
+    }
+  }
+}
