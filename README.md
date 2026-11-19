@@ -194,3 +194,68 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 ```
 
 The tests exercise contracts with synthetic test audio and mocked model workers; they do not load models. Real inference measurements are documented separately. Original Vaani code is licensed under MIT; dependencies, downloaded models and the model-derived conditioning reference retain their applicable upstream terms.
+
+## Optional word timestamps
+
+Add `--word-timestamps` to create a sidecar with recognized text and estimated
+word timings after speech generation. The speech worker exits before the local
+Whisper worker starts. Ordinary synthesis remains audio-only.
+
+Whisper settings reuse `config/voices.json`. Keep machine-specific paths in
+`config/voices.local.json`, which is ignored by Git. Only the `whisper` section
+is overridden; voice profiles and their cache identities are unchanged.
+
+```json
+{
+  "whisper": {
+    "model_path": "/absolute/path/to/downloaded/whisper-large-v3-turbo",
+    "language": "hi"
+  }
+}
+```
+
+A relative model path resolves against the Vaani project. The shared default is
+`models/whisper-large-v3-turbo`; `language: "auto"` enables language detection.
+An optional short `initial_prompt` can supply vocabulary hints. No model is
+downloaded during synthesis or optional-runtime setup.
+
+Install the separate, checksum-pinned Whisper Python runtime once:
+
+```sh
+./bin/vaani setup --word-timestamps --allow-download --json
+./bin/vaani doctor --word-timestamps --json
+./bin/vaani synthesize --input speech.txt --output narration.wav --word-timestamps
+```
+
+The setup download permission applies to Python packages only. Omit
+`--allow-download` when the package cache is already populated. A normal Vaani
+installation and local MLX Whisper weights must exist first.
+
+The command writes `narration.wav` and `narration.timestamps.json`; MP3 output
+uses the same sidecar naming rule. CLI/Python/MCP results include
+`timestamps_file` and `timestamps_cache_reused` only when enabled. The MCP
+option is `word_timestamps: true`. New jobs default to false; resume preserves
+the saved choice when omitted. Use `--no-word-timestamps` or the explicit MCP
+false value to disable it on a resumed job.
+
+The sidecar uses `vaani-word-timestamps/1`, with `text`, `segments[].words[]`
+(`word`, `start`, `end`, `probability`), audio hash/duration and model fingerprint.
+All word times are seconds from the final audio recording's beginning,
+including when generation used multiple chunks. Its metadata contains only the
+audio basename, not installation/model/input paths. ASR timings and probability
+scores require review; they are not word-perfect alignment or pronunciation
+certification. Visual cue selection remains the narration analyzer's job.
+
+Generated sidecars, runtime caches, job manifests and local configuration are
+ignored by Git. CLI/MCP results and private job metadata intentionally retain
+absolute paths for locating files and recovering jobs; those paths are visible
+to the connected client. Review local artifacts before sharing them.
+
+If recognition fails, the command reports failure and retains generated audio
+in the reported job directory; completed speech chunks remain reusable. Resume
+with the same job to retry without resynthesizing valid speech. Existing audio
+and sidecar destinations are protected unless `--overwrite` is supplied. A
+publication/manifest failure rolls back both destinations when possible.
+Timestamp caches are bound to audio/model/settings/code identities and validated
+before reuse. If audio is overwritten with timestamp generation disabled, an
+older sidecar is not refreshed; consumers must check its audio hash.

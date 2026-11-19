@@ -66,3 +66,25 @@ def fingerprint(root,profile):
     for relative in ["src/vaani/worker.py","locks/"+profile["backend"]+"-requirements.lock"]:
         selected[relative]=sha(Path(root)/relative)
     return identity(selected)
+
+
+def whisper_settings(root):
+    """Shared defaults plus an ignored machine-local override; voice profiles stay untouched."""
+    root=Path(root)
+    defaults={"model_path":"models/whisper-large-v3-turbo","language":"hi","initial_prompt":None}
+    try:
+        shared=registry(root).get("whisper",{})
+        local_path=root/"config/voices.local.json"
+        local=read(local_path).get("whisper",{}) if local_path.exists() else {}
+    except (OSError,ValueError,AttributeError) as exc:
+        raise VaaniError(4,"Whisper configuration is invalid; check config/voices.json and config/voices.local.json") from exc
+    for section in (shared,local):
+        if not isinstance(section,dict) or set(section)-set(defaults):raise VaaniError(4,"Unsupported Whisper configuration keys")
+    config={**defaults,**shared,**local}
+    if not isinstance(config["model_path"],str) or not config["model_path"].strip():raise VaaniError(4,"Whisper model_path must name a local folder")
+    if not isinstance(config["language"],str) or not config["language"].strip():raise VaaniError(4,"Whisper language must be a language code or auto")
+    if config["initial_prompt"] is not None and (not isinstance(config["initial_prompt"],str) or len(config["initial_prompt"])>2000):raise VaaniError(4,"Whisper initial_prompt must be a short string or null")
+    path=Path(config["model_path"]).expanduser()
+    config["model_path"]=(path if path.is_absolute() else root/path).resolve()
+    config["language"]=None if config["language"]=="auto" else config["language"]
+    return config

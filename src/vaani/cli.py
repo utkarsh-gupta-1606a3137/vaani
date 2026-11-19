@@ -13,13 +13,14 @@ def build_parser():
     sub=p.add_subparsers(dest="command",required=True)
     voices=sub.add_parser("voices");v=voices.add_subparsers(dest="voices_command",required=True)
     v.add_parser("list").add_argument("--json",action="store_true")
-    doctor=sub.add_parser("doctor");doctor.add_argument("--json",action="store_true")
-    setup=sub.add_parser("setup");setup.add_argument("--import-from","--from-test",dest="from_test",type=Path);setup.add_argument("--bootstrap-only",action="store_true");setup.add_argument("--allow-download",action="store_true");setup.add_argument("--json",action="store_true")
+    doctor=sub.add_parser("doctor");doctor.add_argument("--json",action="store_true");doctor.add_argument("--word-timestamps",action="store_true")
+    setup=sub.add_parser("setup");setup.add_argument("--import-from","--from-test",dest="from_test",type=Path);setup.add_argument("--bootstrap-only",action="store_true");setup.add_argument("--allow-download",action="store_true");setup.add_argument("--json",action="store_true");setup.add_argument("--word-timestamps",action="store_true")
     status=sub.add_parser("status");status.add_argument("--job",type=Path,required=True);status.add_argument("--json",action="store_true")
     s=sub.add_parser("synthesize")
     s.add_argument("--input",type=Path);s.add_argument("--stdin",action="store_true");s.add_argument("--input-format",choices=["auto","text","markdown"],default="auto")
     s.add_argument("--voice");s.add_argument("--output",type=Path,required=True);s.add_argument("--format",choices=["wav","mp3"])
     s.add_argument("--normalization",choices=["audition-rms-v1","none"]);s.add_argument("--seed",type=int);s.add_argument("--overwrite",action="store_true")
+    s.add_argument("--word-timestamps",action=argparse.BooleanOptionalAction,default=None,help="Write estimated word timings to OUTPUT.timestamps.json")
     s.add_argument("--resume",type=Path);s.add_argument("--json",action="store_true")
     s.add_argument("--chunk-timeout",type=float,default=900);s.add_argument("--job-timeout",type=float,default=7200)
     return p
@@ -31,7 +32,10 @@ def main(argv=None):
         args=build_parser().parse_args(argv);root=project_root()
         if args.command in ("voices","doctor","setup"):
             from .setup import doctor,setup
-            if args.command=="setup":result=setup(root,args.from_test,args.allow_download,progress,args.bootstrap_only)
+            if args.command in ("setup","doctor") and args.word_timestamps:
+                from .timestamps import setup_timestamps,doctor_timestamps
+                result=setup_timestamps(root,args.allow_download,progress) if args.command=="setup" else doctor_timestamps(root)
+            elif args.command=="setup":result=setup(root,args.from_test,args.allow_download,progress,args.bootstrap_only)
             else:result=doctor(root)
             if args.command=="voices":result={"voices":result["voices"]}
             if machine:print(json.dumps(result,ensure_ascii=False))
@@ -55,12 +59,13 @@ def main(argv=None):
             from .api import synthesize
             request=SynthesisRequest(output_path=args.output,input_path=args.input,text=text,input_format=args.input_format,
                                      voice_id=args.voice,output_format=args.format,normalization=args.normalization,
-                                     seed=args.seed,overwrite=args.overwrite,resume_job_dir=args.resume,
+                                     seed=args.seed,word_timestamps=args.word_timestamps,overwrite=args.overwrite,resume_job_dir=args.resume,
                                      chunk_timeout_seconds=args.chunk_timeout,job_timeout_seconds=args.job_timeout)
             result=synthesize(request,root=root,progress=progress).to_dict()
         if machine:print(json.dumps(result,ensure_ascii=False))
         elif args.command=="status":print(json.dumps(result,ensure_ascii=False,indent=2))
         else:print(f"Saved {result['output_file']} ({result['duration_seconds']:.2f}s, {result['voice_id']})")
+        if args.command=="synthesize" and result.get("timestamps_file") and not machine:print(f"Word timestamps: {result['timestamps_file']}")
         return 0
     except KeyboardInterrupt:error=VaaniError(130,"Cancelled")
     except VaaniError as exc:error=exc

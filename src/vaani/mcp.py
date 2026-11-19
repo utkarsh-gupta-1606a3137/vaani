@@ -81,6 +81,7 @@ async def generate_narration(
     input_format: Literal["auto", "text", "markdown"] = "auto",
     normalization: Literal["audition-rms-v1", "none"] | None = None,
     seed: Annotated[int | None, Field(ge=0, lt=2**32)] = None,
+    word_timestamps: bool | None = None,
     overwrite: bool = False,
     resume_job_dir: str | None = None,
     chunk_timeout_seconds: Annotated[float, Field(ge=1, le=7200)] = 900,
@@ -104,7 +105,10 @@ async def generate_narration(
     may be omitted and saved voice/seed/normalization are retained. Timeouts
     are seconds. Generation can take several minutes; allow a long tool timeout.
     Returns the absolute output_file and job/manifest paths, format, voice,
-    duration and audio metadata. Audio stays on this Mac, not in the response.
+    duration and audio metadata. Set word_timestamps=true to also create a JSON
+    sidecar with estimated word timings, using the configured local Whisper model.
+    New jobs default to false; resume retains the saved choice when omitted.
+    Returns timestamps_file when enabled. Audio stays on this Mac, not in the response.
     """
     if content is not None and content_file is not None:
         raise ToolError("Provide exactly one of content or content_file.")
@@ -129,6 +133,8 @@ async def generate_narration(
                         ("--normalization", normalization), ("--seed", seed)):
         if value is not None:
             arguments.extend([flag, str(value)])
+    if word_timestamps is not None:
+        arguments.append("--word-timestamps" if word_timestamps else "--no-word-timestamps")
     if overwrite:
         arguments.append("--overwrite")
     return await run_cli(arguments, content)

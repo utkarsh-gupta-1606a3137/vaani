@@ -54,6 +54,12 @@ class MCPTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn("--overwrite", args)
             self.assertNotIn("--stdin", args)
 
+    async def test_word_timestamp_option_maps_to_explicit_cli_flags(self):
+        for value,flag in [(True,"--word-timestamps"),(False,"--no-word-timestamps")]:
+            with patch.object(adapter,"run_cli",new_callable=AsyncMock,return_value={}) as run:
+                await adapter.generate_narration(content="hello",word_timestamps=value)
+                self.assertIn(flag,run.call_args.args[0])
+
     async def test_invalid_input_never_starts_cli(self):
         invalid = [{}, {"content": ""}, {"content": "  "},
                    {"content": "hello", "content_file": "/tmp/in.txt"},
@@ -79,6 +85,7 @@ class MCPTests(unittest.IsolatedAsyncioTestCase):
             tool = listing.tools[0]
             self.assertEqual(tool.name, "generate_narration")
             self.assertIn("Hinglish", tool.description)
+            self.assertIn("word_timestamps", tool.input_schema["properties"])
             self.assertEqual(tool.input_schema["properties"]["content"]["default"], None)
             for arguments in ({"content": "hi", "voice": "missing"},
                               {"content": "hi", "seed": -1},

@@ -26,6 +26,7 @@ class SynthesisRequest:
     resume_job_dir: Path | None = None
     chunk_timeout_seconds: float = 900
     job_timeout_seconds: float = 7200
+    word_timestamps: bool | None = None
 
 @dataclass
 class SynthesisResult:
@@ -40,5 +41,7 @@ class SynthesisResult:
     manifest_file: Path
     cache_reused: bool
     warnings: list[str] = field(default_factory=list)
+    timestamps_file: Path | None = None
+    timestamps_cache_reused: bool | None = None
     def to_dict(self):
-        return {k:str(v) if isinstance(v,Path) else v for k,v in asdict(self).items()}
+        return {k:str(v) if isinstance(v,Path) else v for k,v in asdict(self).items() if v is not None}

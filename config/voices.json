@@ -58,5 +58,10 @@
         "models/indic-speak-mlx-8bit/model.safetensors.index.json"
       ]
     }
+  },
+  "whisper": {
+    "model_path": "models/whisper-large-v3-turbo",
+    "language": "hi",
+    "initial_prompt": null
   }
 }

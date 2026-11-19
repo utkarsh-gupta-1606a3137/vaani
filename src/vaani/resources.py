@@ -17,3 +17,16 @@ class Lease:
 def available():
     import psutil
     return psutil.virtual_memory().available
+
+
+def stop_process(process):
+    """Stop only this job's separately launched worker group."""
+    import signal,subprocess
+    if process.poll() is None:
+        try:os.killpg(process.pid,signal.SIGTERM)
+        except ProcessLookupError:return
+        try:process.wait(timeout=8)
+        except subprocess.TimeoutExpired:
+            try:os.killpg(process.pid,signal.SIGKILL)
+            except ProcessLookupError:pass
+            process.wait()

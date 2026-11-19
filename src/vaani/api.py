@@ -5,7 +5,7 @@ from .types import SynthesisRequest,SynthesisResult,VaaniError
 from .config import project_root,environment,voice,identity,save,read,sha,fingerprint
 from .input import read_source
 from .chunking import plan,POLICY
-from .resources import Lease,available
+from .resources import Lease,available,stop_process as _stop
 from .audio import inspect,assemble,encode_mp3,verify_output
 
 def output_path(path,fmt):
@@ -17,16 +17,6 @@ def output_path(path,fmt):
     fmt=fmt or suffix.lstrip(".") or "wav"
     if not suffix:p=p.with_suffix("."+fmt)
     return p,fmt
-
-def _stop(process):
-    if process.poll() is None:
-        try:os.killpg(process.pid,signal.SIGTERM)
-        except ProcessLookupError:return
-        try:process.wait(timeout=8)
-        except subprocess.TimeoutExpired:
-            try:os.killpg(process.pid,signal.SIGKILL)
-            except ProcessLookupError:pass
-            process.wait()
 
 def _run_worker(root,profile,tasks,job,request,progress,started):
     import psutil
@@ -92,6 +82,13 @@ def synthesize(request,*,root=None,progress=None):
             request.voice_id=stored["voice_id"];request.seed=stored["seed"]
             if request.input_path is None and request.text is None:
                 request.text=(job/"input-original.txt").read_text();request.input_format=stored["input_format"]
+        if request.word_timestamps is not None and not isinstance(request.word_timestamps,bool):raise VaaniError(2,"word_timestamps must be true, false or omitted")
+        request.word_timestamps=request.word_timestamps if request.word_timestamps is not None else (restored['request'].get('word_timestamps',False) if restored else False)
+        timestamps_output=output.with_suffix('.timestamps.json')
+        if request.word_timestamps:
+            if timestamps_output.exists() and not request.overwrite:raise VaaniError(9,"Timestamp output exists; use --overwrite to replace it")
+            if request.input_path is not None and Path(request.input_path).resolve()==timestamps_output.resolve():raise VaaniError(2,"Timestamp output cannot replace input")
+            if timestamps_output.is_symlink():raise VaaniError(2,"Timestamp output cannot replace a symlink")
         request.voice_id=request.voice_id or "amit"
         profile=voice(root,request.voice_id)
         request.seed=profile["default_seed"] if request.seed is None else request.seed
@@ -103,6 +100,9 @@ def synthesize(request,*,root=None,progress=None):
         normalization=request.normalization or (restored["request"]["normalization"] if restored else "audition-rms-v1")
         if normalization not in ("none","audition-rms-v1"):raise VaaniError(2,"Unsupported normalization")
         with Lease(root):
+            if request.word_timestamps:
+                from .timestamps import preflight
+                preflight(root)
             try:model_identity=fingerprint(root,profile)
             except (OSError,KeyError,ValueError) as exc:raise VaaniError(4,"Run vaani setup before synthesis: "+str(exc)) from exc
             if not (root/".runtime/envs"/profile["backend"]/"bin/python").exists():raise VaaniError(4,"Selected voice runtime missing; run setup")
@@ -110,7 +110,7 @@ def synthesize(request,*,root=None,progress=None):
             if job is None:job=root/"runs"/(time.strftime("%Y%m%d-%H%M%S")+"-"+uuid.uuid4().hex[:8])
             job.mkdir(parents=True,exist_ok=True)
             (job/"input-original.txt").write_text(original);(job/"spoken.txt").write_text(prepared)
-            snapshot=dict(voice_id=request.voice_id,seed=request.seed,input_format=mode,normalization=normalization,output_format=fmt,output_file=str(output))
+            snapshot=dict(voice_id=request.voice_id,seed=request.seed,input_format=mode,normalization=normalization,output_format=fmt,output_file=str(output),word_timestamps=request.word_timestamps)
             boundary_warnings=[f"Chunk {c['index']+1} uses a bounded whitespace boundary; review its join." for c in chunks if c.get("boundary_basis")=="bounded_whitespace"]
             manifest=dict(schema_version="vaani-job/1",status="running",request=snapshot,prepared_text_identity=identity(prepared),model_identity=model_identity,voice_profile=profile,chunk_policy=POLICY,chunks=chunks,stage="planning",warnings=boundary_warnings)
             save(job/"manifest.json",manifest)
@@ -139,10 +139,19 @@ def synthesize(request,*,root=None,progress=None):
             manifest["stage"]="verification";save(job/"manifest.json",manifest)
             media=verify_output(candidate,fmt,ffmpeg,job)
             if abs(media["duration_seconds"]-canonical["duration_seconds"])>(.2 if fmt=="mp3" else 1/24000):raise VaaniError(8,"Encoded output duration does not match assembled speech")
-            result=SynthesisResult("complete",job,output,fmt,request.voice_id,media["duration_seconds"],media["sample_rate"],media["channels"],job/"manifest.json",reused>0,manifest["warnings"])
+            timestamps_candidate=None;timestamps_reused=None
+            if request.word_timestamps:
+                manifest['stage']='word_timestamps';save(job/'manifest.json',manifest)
+                from .timestamps import run_timestamps
+                timestamps_candidate,timestamps_reused=run_timestamps(root,candidate,output.name,manifest['assembly']['chunks'],job,request,progress,started)
+                manifest['word_timestamps']=dict(file=str(timestamps_output),sha256=sha(timestamps_candidate),cache_reused=timestamps_reused)
+            result=SynthesisResult("complete",job,output,fmt,request.voice_id,media["duration_seconds"],media["sample_rate"],media["channels"],job/"manifest.json",reused>0,manifest["warnings"],timestamps_output if request.word_timestamps else None,timestamps_reused)
             manifest.update(status="complete",stage="complete",result=result.to_dict(),cache_reused_count=reused,generated_count=len(tasks),output_sha256=sha(candidate),elapsed_seconds=time.monotonic()-started)
             from .publication import publish
-            publish(candidate,output,request.overwrite,lambda:save(job/"manifest.json",manifest),manifest["warnings"])
+            def commit():
+                if timestamps_candidate is None:save(job/"manifest.json",manifest)
+                else:publish(timestamps_candidate,timestamps_output,request.overwrite,lambda:save(job/"manifest.json",manifest),manifest["warnings"])
+            publish(candidate,output,request.overwrite,commit,manifest["warnings"])
             return result
     except BaseException as exc:
         if isinstance(exc,KeyboardInterrupt):error=VaaniError(130,"Narration cancelled; completed chunks are retained")
@@ -150,6 +159,10 @@ def synthesize(request,*,root=None,progress=None):
         elif isinstance(exc,OSError):error=VaaniError(9,"Filesystem operation failed: "+str(exc))
         else:error=VaaniError(7,"Narration failed: "+type(exc).__name__)
         if job and manifest:
+            if manifest.get('stage')=='word_timestamps':
+                candidate=job/('candidate.'+fmt)
+                if candidate.is_file():error.details.setdefault('audio_file',str(candidate))
+                error.stage=error.stage or 'word_timestamps'
             manifest.update(status="cancelled" if error.code==130 else "failed",error=error.to_dict(),elapsed_seconds=time.monotonic()-started)
             try:save(job/"manifest.json",manifest)
             except OSError:pass

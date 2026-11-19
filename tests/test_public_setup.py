@@ -89,7 +89,7 @@ class PublicSetup(unittest.TestCase):
 
     def test_artifact_hash_locks_preserve_exact_plain_version_pins(self):
         import re
-        for name in ["control","chatterbox","indic"]:
+        for name in ["control","chatterbox","indic","whisper"]:
             plain=(ROOT/"locks"/(name+"-requirements.lock")).read_text()
             hashed=(ROOT/"locks"/(name+"-requirements.hashed.lock")).read_text()
             pins=lambda text:dict(line.split()[0].split("==",1) for line in text.splitlines() if line and "==" in line and not line.lstrip().startswith("#"))

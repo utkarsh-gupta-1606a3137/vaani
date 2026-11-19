@@ -25,3 +25,6 @@ config/*.local.json
 
 # Required synthetic conditioning reference; not an optional generated output.
 !voices/references/amit-conditioning.wav
+
+# Optional generated speech-analysis sidecars.
+*.timestamps.json
