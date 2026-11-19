@@ -31,6 +31,70 @@ The launcher derives its project root, so an absolute invocation works from anot
 /absolute/path/to/vaani/bin/vaani synthesize --input /absolute/path/content.txt --voice saba --output /absolute/path/narration.wav
 ```
 
+## Connect an AI chatbot through MCP
+
+The optional adapter uses the [official MCP Python SDK](https://py.sdk.modelcontextprotocol.io/). It exposes one tool, `generate_narration`, over local stdio. The client launches Vaani when needed; no separate running server, API key, shell activation, PATH change, or project working directory is required.
+
+After the normal Vaani setup, install the MCP dependencies once:
+
+```sh
+./bin/vaani-mcp --setup
+```
+
+This explicitly downloads pinned, hash-checked packages into `.runtime/envs/mcp`. It leaves the control and speech environments alone. Normal MCP startup and narration work offline. Rerun this command after an MCP dependency update or after repairing/relocating the main installation.
+
+In your chatbot's **user/application-level MCP configuration**, register the absolute launcher path (replace the example with your clone's actual location):
+
+```json
+{
+  "mcpServers": {
+    "vaani": {
+      "command": "/absolute/path/to/vaani/bin/vaani-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+The outer configuration syntax depends on the client; use its local/stdio MCP server settings. Do not put `--setup` in the client configuration. User-level registration makes the tool available outside a particular project. The absolute launcher locates its own code, Python, models and caches even if the client starts in another directory. Keep that installation on disk; update the configured path and rerun setup after moving it. Each client needs its own registration.
+
+Keep machine-specific paths in your MCP client's private settings. For a local configuration snippet, copy `config/mcp.example.json` to `config/mcp.local.json` and replace the placeholder there; `config/*.local.json` is ignored by Git. Copy/import that snippet into your client using its own configuration flow. The Vaani launcher does not read this JSON file: it derives its installation root automatically, so no personal paths belong in source code or committed configuration.
+
+Example tool arguments:
+
+```json
+{
+  "content": "नमस्ते! आज हम एक छोटा example समझेंगे।",
+  "output_path": "/absolute/path/to/narration.wav"
+}
+```
+
+Use this tool primarily for Hinglish: Devanagari Hindi mixed with English terms is the tested input. Other text is accepted, but pronunciation can vary. Supply final narration text; the tool does not generate or rewrite content.
+
+| Argument | Default / behavior |
+|---|---|
+| `content` / `content_file` | Exactly one required for a new job: inline text or an absolute UTF-8 `.txt`/`.md` file path. |
+| `output_path` | Optional absolute destination filename. If omitted, a unique `outputs/narration-<id>.wav` in the installation. `~/...` paths are also supported. |
+| `voice` | `amit`; optionally `saba`. |
+| `output_format` | Inferred from `.wav`/`.mp3` filename; otherwise `wav`. Contradictory extensions are rejected. |
+| `input_format` | `auto`; optionally `text` or `markdown`. Inline content defaults to text. |
+| `normalization` | `audition-rms-v1`; optionally `none`. |
+| `seed` | Voice default; optionally an integer from 0 through 4,294,967,295. |
+| `overwrite` | `false`; existing output files are protected. |
+| `resume_job_dir` | Optional absolute job directory from a prior result. Content may be omitted for recovery; saved voice, seed and normalization are reused. |
+| `chunk_timeout_seconds` | 900; allowed range 1–7,200. |
+| `job_timeout_seconds` | 7,200; allowed range 1–86,400. |
+
+File paths refer to files on the Mac running Vaani. Relative paths are rejected so their meaning cannot depend on the chatbot's working directory. Results contain an absolute `output_file`, job and manifest paths, voice, format, duration and audio metadata; the audio remains on disk. Failures are MCP tool errors with the CLI error details and recovery paths. Progress goes to stderr, keeping protocol stdout clean. Cancellation interrupts the CLI so it can stop its worker and retain completed chunks. The existing single-worker lease also applies across clients.
+
+Configure the client's tool timeout to allow the requested job duration (normally at least 7,200 seconds plus some cleanup time). A client that times out sooner may cancel generation. This adapter is for trusted local clients that can read and write files on your Mac.
+
+Run the adapter checks after setup:
+
+```sh
+PYTHONPATH=src .runtime/envs/mcp/bin/python -m unittest discover -s tests -p test_mcp.py -v
+```
+
 ## Voices
 
 | ID | Backend | Approved identity |
@@ -119,7 +183,7 @@ PYTHONPATH=src .runtime/envs/control/bin/python -m unittest discover -s tests -v
 
 See [VALIDATION.md](VALIDATION.md) for measured development-machine results and limitations. Raw private run reports are not included. Technical stream checks do not prove pronunciation or pleasantness. Full long-form listening remains a user review gate.
 
-No video, content-writing LLM, API/MCP server, scheduler, extra voices or publishing is included. The reusable core can support adapters later without duplicating narration logic.
+No video, content-writing LLM, hosted API, scheduler, extra voices or publishing is included. The optional local MCP adapter delegates narration to the existing CLI.
 
 ## Source checks without model downloads
 

@@ -1,0 +1,25 @@
+#!/bin/sh
+set -eu
+VAANI_PROJECT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+export VAANI_ROOT="$VAANI_PROJECT"
+export PYTHONPATH="$VAANI_PROJECT/src"
+export PYTHONNOUSERSITE=1
+export PYTHONPYCACHEPREFIX="$VAANI_PROJECT/cache/pycache"
+MCP_ENV="$VAANI_PROJECT/.runtime/envs/mcp"
+if [ "${1:-}" = --setup ]; then
+  [ "$#" = 1 ] || { echo 'Usage: vaani-mcp --setup' >&2; exit 2; }
+  [ -x "$VAANI_PROJECT/.runtime/envs/control/bin/python" ] && [ -x "$VAANI_PROJECT/.runtime/tools/uv" ] || {
+    echo 'Run bin/vaani setup first, then rerun bin/vaani-mcp --setup.' >&2; exit 4;
+  }
+  export UV_CACHE_DIR="$VAANI_PROJECT/cache/uv"
+  export UV_NO_CONFIG=1
+  export UV_PYTHON_DOWNLOADS=never
+  "$VAANI_PROJECT/.runtime/tools/uv" venv --allow-existing --python "$VAANI_PROJECT/.runtime/envs/control/bin/python" "$MCP_ENV" >&2
+  "$VAANI_PROJECT/.runtime/tools/uv" pip sync --python "$MCP_ENV/bin/python" --only-binary :all: --require-hashes --index-url https://pypi.org/simple "$VAANI_PROJECT/locks/mcp-requirements.hashed.lock" >&2
+  echo 'Vaani MCP is ready. Configure your MCP client with the absolute path to bin/vaani-mcp.' >&2
+  exit 0
+fi
+[ -x "$MCP_ENV/bin/python" ] || {
+  echo 'Run bin/vaani-mcp --setup once before connecting an MCP client.' >&2; exit 4;
+}
+exec "$MCP_ENV/bin/python" -m vaani.mcp "$@"
